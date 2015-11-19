@@ -1,0 +1,25 @@
+---
+abstract: ~
+build_requires:
+  ExtUtils::MakeMaker: 6.36
+configure_requires:
+  ExtUtils::MakeMaker: 6.36
+distribution_type: module
+dynamic_config: 1
+generated_by: 'Module::Install version 1.16'
+license: unknown
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: ExampleWeb
+no_index:
+  directory:
+    - inc
+requires:
+  BerkeleyDB: 0
+  Moo: 0
+  MooX::Singleton: 0
+  Search::Indexer: 0
+  Types::Standard: 0
+  Web::Simple: 0
+version: undef

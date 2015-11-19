@@ -1,0 +1,28 @@
+---
+abstract: unknown
+author:
+  - unknown
+build_requires:
+  ExtUtils::MakeMaker: '6.36'
+configure_requires:
+  ExtUtils::MakeMaker: '0'
+dynamic_config: 0
+generated_by: 'ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.150005'
+license: unknown
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: '1.4'
+name: ExampleWeb
+no_index:
+  directory:
+    - t
+    - inc
+requires:
+  BerkeleyDB: '0'
+  Moo: '0'
+  MooX::Singleton: '0'
+  Search::Indexer: '0'
+  Types::Standard: '0'
+  Web::Simple: '0'
+version: ''
+x_serialization_backend: 'CPAN::Meta::YAML version 0.016'
