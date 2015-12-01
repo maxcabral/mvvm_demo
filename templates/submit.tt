@@ -1,0 +1,14 @@
+<html>
+  <head>
+    <title>MetaCakePan</title>
+  </head>
+  <body>
+    <h1>MetaCakePan - The Recipe Search Engine</h1>
+    <h3>Add an article</h3>
+    <form action="submit" method="POST">
+      <input type="text" name="title">
+      <input type="text" name="url">
+      <input type="submit" value="Add" name="submit">
+    </form>
+  </body>
+</html>

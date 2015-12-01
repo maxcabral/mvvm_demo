@@ -1,0 +1,15 @@
+<html>
+  <head>
+    <title>MetaCakePan</title>
+  </head>
+  <body>
+    <h1>MetaCakePan - The Recipe Search Engine</h1>
+    <form action="search">
+      <input type="text" name="q">
+      <input type="submit" value="Search" name="">
+    </form>
+    <div>
+      <a href="/submit">Add a recipe</a>
+    </div>
+  </body>
+</html>
