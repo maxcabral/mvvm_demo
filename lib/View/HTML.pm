@@ -6,8 +6,6 @@ use warnings;
 use Moo;
 use Types::Standard -types;
 
-with 'MooX::Singleton';
-
 use FindBin;
 use Template;
 use HTTP::Response;

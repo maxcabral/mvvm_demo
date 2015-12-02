@@ -9,30 +9,53 @@ use lib "$FindBin::Bin/lib";
 
 use Web::Simple;
 
+use Module::Load;
 use Data::Dumper;
 
-use View::HTML;
+use Bootstrap;
+use ServiceLocator;
+use Try::Tiny;
 
-has 'view' => (
-  is    => 'ro',
-  default => sub { return View::HTML->instance() },
-);
+our $locator = ServiceLocator->default();
+Bootstrap->setup($locator);
 
 sub dispatch_request {
   my $self = shift;
 
   return (
     'GET + /' => sub {
-      return $self->to_ws_response($self->view->process('home'));
+      return $self->to_ws_response($locator->locate('view')->process('home'));
     },
     'GET + /search' => sub {
-      return $self->to_ws_response($self->view->process('search'));
+      return $self->to_ws_response($locator->locate('view')->process('search'));
     },
-    'GET + /submit' => sub {
-      return $self->to_ws_response($self->view->process('submit'));
+    'GET + /submit + ?*' => sub {
+      my $vm = bind_params('ViewModel::Submit',\%_);
+
+      return $self->to_ws_response($locator->locate('view')->process('submit', $vm));
     },
-    'POST + /submit' => sub {
-      return $self->redirect("/submit");
+    'POST + /submit + ?*' => sub {
+      my $vm = bind_params('ViewModel::Submit',\%_);
+      my $error;
+      my $added = 0;
+
+      if ($vm){
+        if ($vm->can_add_to_index){
+          $added = try {
+            return $vm->add_to_index();
+          } catch {
+            warn $_;
+            $error = "indexing";
+            return 0;
+          };
+        } else {
+          $error = $vm->error_code;
+        }
+      } else {
+        $error = "missing-params";
+      }
+      
+      return $self->redirect("/submit?added=$added&error_code=$error");
     },
     '' => sub {
       [ 405, [ 'Content-type', 'text/plain' ], [ 'Method not allowed' ] ]
@@ -67,6 +90,15 @@ sub redirect {
            [ sprintf('<html><body>Please follow <a href="%s">this link</a>.</body></html>',$url) ]
          ];
 
+}
+
+sub bind_params {
+  my ($package, $params) = @_;
+  $params //= {};
+use Data::Dumper;
+warn Dumper $params;
+  load $package;
+  return try { return $package->new($params) } catch { warn $_; return undef; };
 }
 
 ExampleWeb->run_if_script;

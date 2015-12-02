@@ -1,7 +1,6 @@
 package Model::SearchEngine;
 
 use Moo;
-use MooX::Singleton;
 use Types::Standard -types;
 use Types::Common::String -types;
 
@@ -17,17 +16,19 @@ has 'engine' => (
 
 sub _build_engine {
   my ($self) = @_;
-  return new Search::Indexer(dir => $self->indexes, writeMode => 1);
+  return new Search::Indexer(dir => $self->index_path, writeMode => 1);
 }
 
-has 'indexes' => (
-  is    => 'ro',
-  isa   => NonEmptyStr
+has 'index_path' => (
+  is        => 'ro',
+  isa       => NonEmptyStr,
+  required  => 1,
 );
 
-has 'documents' => (
-  is    => 'ro',
-  isa   => NonEmptyStr
+has 'doc_path' => (
+  is        => 'ro',
+  isa       => NonEmptyStr,
+  required  => 1,
 );
 
 sub index_text {
@@ -36,7 +37,8 @@ sub index_text {
     text    => $text,
     title   => $title,
     source  => $source,
-  });
+    path    => $self->doc_path,
+  }));
 }
 
 sub index_document {
@@ -55,7 +57,10 @@ sub remove_document {
 
 sub search {
   my ($self, $query) = @_;
-  return $self->engine->search($query);
+  my $res = $self->engine->search($query);
+  my $scores = $res->{scores};
+  my @ret_val = map { Model::Document->load($_); } keys %$scores;
+  return \@ret_val;
 }
 
 1;

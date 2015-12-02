@@ -10,6 +10,7 @@ use File::Basename;
 use JSON::XS;
 
 our $encoder = JSON::XS->new()->pretty()->utf8();
+our $base_path;
 
 has 'id' => (
   is        => 'ro',
@@ -46,22 +47,20 @@ has 'source' => (
 has 'path' => (
   is        => 'ro',
   isa       => Maybe[NonEmptyStr],
+  default   => sub { $base_path },
 );
 
 sub load {
-  my ($class, $path) = @_;
-  my $data = read_file($path);
-  my($filename, $dirs, $suffix) = fileparse($path);
-  my $doc_name = $filename;
+  my ($class, $id, $path) = @_;
+  $path //= $base_path;
+  my $data = read_file("$path/$id");
 
-  $docname =~ s/"\.$suffix$"//i;
-
-  my ($json,$text) = split("--$docname--",$data);
+  my ($json,$text) = split("--$id--",$data);
   my $meta = $encoder->decode($json);
 
   return Model::Document->new({
     %$meta,
-    path  => $filename,
+    path  => $path,
     text  => $text,
   });
 }
@@ -70,10 +69,13 @@ sub save {
   my ($self, $path) = @_;
   $path //= $self->path;
 
-  my $separator = $self->title;
-  $separator =~ s/\s+/\-/g;
+  my $separator = $self->id;
 
-  my $json = $encoder->encode({ title => $title, source => $source });
+  my $json = $encoder->encode({
+    id      => $self->id,
+    title   => $self->title,
+    source  => $self->source
+  });
   open (my $fh, '>', $path) or die $!;
   print $fh "$json\n";
   print $fh "--$separator--\n";
@@ -85,7 +87,7 @@ sub save {
 
 sub delete {
   my ($self) = @_;
-  unlink $self->path;
+  unlink sprintf("%s/%s",$self->path,$self->id);
 }
 
 1;

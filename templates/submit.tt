@@ -5,10 +5,24 @@
   <body>
     <h1>MetaCakePan - The Recipe Search Engine</h1>
     <h3>Add an article</h3>
+    [% IF Model.has_error_code -%]
+    <h3>Error: [% Model.error_message %]</h3>
+    [% ELSIF Model.added -%]
+    <h3>Your Recipe was added</h3>
+    [% END -%]
     <form action="submit" method="POST">
-      <input type="text" name="title">
-      <input type="text" name="url">
-      <input type="submit" value="Add" name="submit">
+      <div>
+        Title: <input type="text" name="title"></input><br>
+      </div>
+      <div>
+        Source: <input type="text" name="source"></input><br>
+      </div>
+      <div>
+        Recipe: <textarea rows="4" cols="50" name="recipe"></textarea><br>
+      </div>
+      <div>
+        <input type="submit" value="Add" name="submit"></input>
+      </div>
     </form>
   </body>
 </html>
