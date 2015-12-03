@@ -42,6 +42,7 @@ sub in_namespace {
   my $locator = $instances{$key};
   unless ($locator){
     $locator = ServiceLocator->new( namespace => $key);
+    $instances{$key} = $locator;
   }
   return $locator;
 }

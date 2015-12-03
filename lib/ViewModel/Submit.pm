@@ -56,7 +56,7 @@ has 'error' => (
 
 has 'error_code' => (
   is        => 'rwp',
-  isa       => NonEmptyStr,
+  isa       => Str,
   predicate => 'has_error_code',
 );
 
@@ -66,7 +66,7 @@ has 'error_message' => (
   init_arg  => undef,
   default   => sub {
     my ($self) = @_;
-    if ($self->has_error_code){
+    if ($self->has_error_code && $self->error_code){
       if ($self->error_code =~ m/^(.*)_missing$/){
         if ($1){
           return "The $1 parameter is required";

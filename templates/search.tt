@@ -1,0 +1,32 @@
+<html>
+  <head>
+    <title>MetaCakePan</title>
+  </head>
+  <body>
+    <h1>MetaCakePan - The Recipe Search Engine</h1>
+    <form action="search">
+      <input type="text" name="q" value="[% Model.q %]">
+      <input type="submit" value="Search" name="">
+    </form>
+    [% IF Model.has_results && Model.result_count -%]
+    [% FOREACH result IN Model.get_display_results -%]
+    [% IF result.source_as_uri -%]
+    <div>
+      [% result.title %] - <a href="[% result.source_as_uri.as_string %]">[% result.source_as_uri.host %]</a>
+    [% ELSE -%]
+    <div>
+      [% result.title %] - [% result.source %]
+    [% END -%]
+    <br>
+    [% result.short_text %]
+    </div>
+    <hr>
+    [% END -%]
+    [% ELSE -%]
+    <div>No Results Found</div>
+    [% END -%]
+    <div>
+      <a href="/submit">Add a recipe</a>
+    </div>
+  </body>
+</html>

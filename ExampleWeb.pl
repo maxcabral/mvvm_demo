@@ -12,12 +12,13 @@ use Web::Simple;
 use Module::Load;
 use Data::Dumper;
 
-use Bootstrap;
+use Model::Bootstrap;
 use ServiceLocator;
 use Try::Tiny;
+use URI;
 
 our $locator = ServiceLocator->default();
-Bootstrap->setup($locator);
+Model::Bootstrap->setup($locator);
 
 sub dispatch_request {
   my $self = shift;
@@ -26,15 +27,22 @@ sub dispatch_request {
     'GET + /' => sub {
       return $self->to_ws_response($locator->locate('view')->process('home'));
     },
-    'GET + /search' => sub {
-      return $self->to_ws_response($locator->locate('view')->process('search'));
+    'GET + /search + ?*' => sub {
+      my $vm = $self->handle_search_request(\%_);
+      return $self->to_ws_response($locator->locate('view')->process('search', $vm));
+    },
+    'GET + /api/search + ?*' => sub {
+      my $vm = $self->handle_search_request(\%_);
+      return $self->to_ws_response(ServiceLocator->in_namespace('api')
+                                                 ->locate('view')
+                                                 ->process('search', $vm));
     },
     'GET + /submit + ?*' => sub {
       my $vm = bind_params('ViewModel::Submit',\%_);
 
       return $self->to_ws_response($locator->locate('view')->process('submit', $vm));
     },
-    'POST + /submit + ?*' => sub {
+    'POST + /submit + %*' => sub {
       my $vm = bind_params('ViewModel::Submit',\%_);
       my $error;
       my $added = 0;
@@ -55,12 +63,30 @@ sub dispatch_request {
         $error = "missing-params";
       }
       
-      return $self->redirect("/submit?added=$added&error_code=$error");
+      my $redirect = URI->new();
+      $redirect->path("/submit");
+      $redirect->query_form({
+        added => $added,
+        error_code => $error
+      });
+      return $self->redirect($redirect->as_string());
     },
     '' => sub {
       [ 405, [ 'Content-type', 'text/plain' ], [ 'Method not allowed' ] ]
     },
   );
+}
+
+sub handle_search_request {
+  my ($self, $params) = @_;
+  my $vm_class = $params->{no_uri} ? 'ViewModel::Search' : 'ViewModel::Search::WithUri';
+
+  my $vm = bind_params($vm_class,$params);
+  unless ($vm->get_results()){
+    # Maybe you want to handle the zero result case here
+  }
+
+  return $vm;
 }
 
 sub to_ws_response {
@@ -95,8 +121,6 @@ sub redirect {
 sub bind_params {
   my ($package, $params) = @_;
   $params //= {};
-use Data::Dumper;
-warn Dumper $params;
   load $package;
   return try { return $package->new($params) } catch { warn $_; return undef; };
 }

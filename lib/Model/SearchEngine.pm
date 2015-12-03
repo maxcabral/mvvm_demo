@@ -16,7 +16,7 @@ has 'engine' => (
 
 sub _build_engine {
   my ($self) = @_;
-  return new Search::Indexer(dir => $self->index_path, writeMode => 1);
+  return Search::Indexer->new(dir => $self->index_path, writeMode => 1);
 }
 
 has 'index_path' => (
@@ -33,7 +33,7 @@ has 'doc_path' => (
 
 sub index_text {
   my ($self, $text, $title, $source) = @_;
-  return $self->index_document(Model::Document->new({
+  return $self->load_and_store_document(Model::Document->new({
     text    => $text,
     title   => $title,
     source  => $source,
@@ -41,7 +41,25 @@ sub index_text {
   }));
 }
 
-sub index_document {
+=head2 load_document
+
+Loads a document into the index.
+
+=cut
+
+sub load_document {
+  my ($self, $document) = @_;
+  $self->engine->add($document->id,$document->text);
+  return 1;
+}
+
+=head2 load_and_store_document
+
+Loads a document into the index and saves it to disk.
+
+=cut
+
+sub load_and_store_document {
   my ($self, $document) = @_;
   $self->engine->add($document->id,$document->text);
   $document->save();
@@ -58,8 +76,10 @@ sub remove_document {
 sub search {
   my ($self, $query) = @_;
   my $res = $self->engine->search($query);
+
   my $scores = $res->{scores};
   my @ret_val = map { Model::Document->load($_); } keys %$scores;
+
   return \@ret_val;
 }
 

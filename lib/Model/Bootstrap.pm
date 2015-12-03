@@ -1,10 +1,12 @@
-package Bootstrap;
+package Model::Bootstrap;
 
 use FindBin;
 use ServiceLocator;
 
+use Model::Document;
 use Model::SearchEngine;
 use View::HTML;
+use View::JSON;
 
 sub setup {
   my ($class, $locator) = @_;
@@ -20,6 +22,16 @@ sub setup {
                 doc_path    => $doc_path,
                });
   $locator->register('search-engine',$engine);
+
+  opendir my $documents_dir, $doc_path or die "$doc_path does not exist";
+  my @documents = grep { $_ !~ m/^(?:\.||\.\.)$/ } readdir $documents_dir;
+  foreach my $document_id (@documents){
+    $engine->load_document(Model::Document->load($document_id));
+  }
+
+  # API registration
+  $locator = ServiceLocator->in_namespace('api');
+  $locator->register('view', View::JSON->new());  
 }
 
 1;

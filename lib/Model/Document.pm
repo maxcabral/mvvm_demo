@@ -9,8 +9,9 @@ use File::Slurp;
 use File::Basename;
 use JSON::XS;
 
+use ServiceLocator;
+
 our $encoder = JSON::XS->new()->pretty()->utf8();
-our $base_path;
 
 has 'id' => (
   is        => 'ro',
@@ -46,13 +47,18 @@ has 'source' => (
 
 has 'path' => (
   is        => 'ro',
-  isa       => Maybe[NonEmptyStr],
-  default   => sub { $base_path },
+  isa       => NonEmptyStr,
+  lazy      => 1,
+  builder   => '_build_path',
 );
+
+sub _build_path {
+  return ServiceLocator->default()->locate('search-data-path');
+}
 
 sub load {
   my ($class, $id, $path) = @_;
-  $path //= $base_path;
+  $path //= _build_path();
   my $data = read_file("$path/$id");
 
   my ($json,$text) = split("--$id--",$data);
@@ -69,16 +75,17 @@ sub save {
   my ($self, $path) = @_;
   $path //= $self->path;
 
-  my $separator = $self->id;
+  my $id = $self->id;
 
   my $json = $encoder->encode({
-    id      => $self->id,
+    id      => $id,
     title   => $self->title,
     source  => $self->source
   });
-  open (my $fh, '>', $path) or die $!;
+
+  open (my $fh, '>', "$path/$id") or die $!;
   print $fh "$json\n";
-  print $fh "--$separator--\n";
+  print $fh "--$id--\n";
   print $fh $self->text;
   close $fh;
 
