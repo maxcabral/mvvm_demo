@@ -19,7 +19,7 @@ around 'get_display_results' => sub {
       if (is_uri($_->source)){
         $_->{source_as_uri} = URI->new($_->source);
       }
-      $_->{short_text} = substr($_->text,0,100);
+#      $_->{short_text} = substr($_->text,0,100);
       $_
   } @$res;
 

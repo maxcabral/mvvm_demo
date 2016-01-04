@@ -64,6 +64,7 @@ has 'error_message' => (
   is        => 'ro',
   isa       => Maybe[NonEmptyStr],
   init_arg  => undef,
+  lazy      => 1,
   default   => sub {
     my ($self) = @_;
     if ($self->has_error_code && $self->error_code){
